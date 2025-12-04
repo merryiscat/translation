@@ -1,0 +1,38 @@
+# Configuration for MD Translation System
+
+api:
+  # API endpoint (OpenAI-compatible format)
+  # Update this with your LLM API endpoint
+  endpoint: "https://your-model-api.com/v1/chat/completions"
+
+  # API key - can use environment variable
+  # Set LLM_API_KEY environment variable or put the key directly here
+  api_key: "${LLM_API_KEY}"
+
+  # Model name to use
+  # Update this with your model name
+  model: "your-model-name"
+
+translation:
+  # Target chunk size in characters
+  chunk_size: 10000
+
+  # Source and target languages
+  source_lang: "en"
+  target_lang: "ko"
+
+  # Output directory for translated files
+  # Translated files will be saved in <input_dir>/<output_dir>/<filename>
+  output_dir: "translated"
+
+retry:
+  # Maximum number of retry attempts on API failure
+  max_attempts: 3
+
+  # Backoff factor for exponential backoff
+  # Wait times: 1s, 2s, 4s, ...
+  backoff_factor: 2
+
+logging:
+  # Use tqdm progress bar
+  use_progress_bar: true

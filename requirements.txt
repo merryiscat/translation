@@ -1,0 +1,12 @@
+# Core dependencies
+aiohttp>=3.9.0
+asyncio>=3.4.3
+pyyaml>=6.0
+tqdm>=4.66.0
+tenacity>=8.2.0
+python-dotenv>=1.0.0
+
+# Optional: for development
+# pytest>=7.4.0
+# black>=23.0.0
+# flake8>=6.0.0
