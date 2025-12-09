@@ -5,6 +5,7 @@ import aiohttp
 import asyncio
 import os
 import json
+from pathlib import Path
 from typing import Optional, Dict, Any
 from tenacity import retry, stop_after_attempt, wait_exponential
 
@@ -12,7 +13,7 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 class Translator:
     """Translator class for handling API calls."""
 
-    def __init__(self, endpoint: str, api_key: str, model: str, max_retries: int = 3, request_template: Optional[str] = None):
+    def __init__(self, endpoint: str, api_key: str, model: str, max_retries: int = 3, request_template: Optional[str] = None, prompt_file: Optional[str] = None):
         """
         Initialize translator.
 
@@ -22,6 +23,7 @@ class Translator:
             model: Model name to use
             max_retries: Maximum number of retry attempts
             request_template: Optional custom request body template (JSON string)
+            prompt_file: Optional path to custom prompt file (default: prompts/translation_system.txt)
         """
         self.endpoint = endpoint
         self.api_key = api_key
@@ -29,13 +31,39 @@ class Translator:
         self.max_retries = max_retries
         self.request_template = request_template
 
-        # System prompt for translation
-        self.system_prompt = (
-            "You are a professional academic translator. "
-            "Translate the following English text to Korean. "
-            "IMPORTANT: Preserve all placeholders like {{CODE_BLOCK_0}}, {{MATH_0}}, etc. exactly as they appear. "
-            "Only translate the actual text content, not the placeholders."
-        )
+        # Load system prompt from file
+        self.system_prompt = self._load_prompt(prompt_file)
+
+    def _load_prompt(self, prompt_file: Optional[str] = None) -> str:
+        """
+        Load system prompt from file.
+
+        Args:
+            prompt_file: Path to prompt file (default: prompts/translation_system.txt)
+
+        Returns:
+            System prompt text
+        """
+        if prompt_file is None:
+            prompt_file = "prompts/translation_system.txt"
+
+        prompt_path = Path(prompt_file)
+
+        if not prompt_path.exists():
+            # Fallback to default prompt if file doesn't exist
+            print(f"⚠️  Warning: Prompt file not found: {prompt_file}")
+            print(f"   Using default prompt")
+            return (
+                "You are a professional academic translator. "
+                "Translate the English text to Korean and return ONLY the Korean translation. "
+                "Do NOT include the original English text in your response. "
+                "Do NOT add headers like 'Korean Translation' or any explanatory text. "
+                "IMPORTANT: Preserve all placeholders like {{CODE_BLOCK_0}}, {{MATH_0}}, etc. exactly as they appear. "
+                "Only translate the actual text content, not the placeholders."
+            )
+
+        with open(prompt_path, 'r', encoding='utf-8') as f:
+            return f.read().strip()
 
     def _build_request_body(self, chunk: str) -> Dict[str, Any]:
         """
@@ -101,9 +129,12 @@ class Translator:
         request_body = self._build_request_body(chunk)
 
         headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.api_key}"
+            "Content-Type": "application/json"
         }
+
+        # Add Authorization header only if API key is provided
+        if self.api_key:
+            headers["Authorization"] = f"Bearer {self.api_key}"
 
         async with aiohttp.ClientSession() as session:
             async with session.post(
@@ -178,17 +209,20 @@ def create_translator_from_config(config: dict) -> Translator:
     """
     api_config = config.get('api', {})
     retry_config = config.get('retry', {})
+    translation_config = config.get('translation', {})
 
     # Get configuration from environment variables (priority) or config file
     api_key = os.environ.get('LLM_API_KEY', api_config.get('api_key', ''))
     endpoint = os.environ.get('LLM_API_ENDPOINT', api_config.get('endpoint', ''))
     model = os.environ.get('LLM_MODEL_NAME', api_config.get('model', ''))
     request_template = os.environ.get('LLM_REQUEST_TEMPLATE', None)
+    prompt_file = os.environ.get('LLM_PROMPT_FILE', translation_config.get('prompt_file', None))
 
     return Translator(
         endpoint=endpoint,
         api_key=api_key,
         model=model,
         max_retries=retry_config.get('max_attempts', 3),
-        request_template=request_template
+        request_template=request_template,
+        prompt_file=prompt_file
     )

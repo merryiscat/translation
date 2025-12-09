@@ -25,6 +25,10 @@ translation:
   # Translated files will be saved in <input_dir>/<output_dir>/<filename>
   output_dir: "translated"
 
+  # Custom prompt file path (optional)
+  # Default: prompts/translation_system.txt
+  # prompt_file: "prompts/custom_prompt.txt"
+
 retry:
   # Maximum number of retry attempts on API failure
   max_attempts: 3

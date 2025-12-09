@@ -20,7 +20,7 @@
 
 ```bash
 # 저장소 클론 또는 프로젝트 디렉토리로 이동
-cd luxia_translation
+cd translation
 
 # 의존성 설치
 pip install -r requirements.txt
@@ -138,7 +138,9 @@ Translation progress: 100%|██████████| 9/9 [01:32<00:00, 10.
 ## 프로젝트 구조
 
 ```
-luxia_translation/
+translation/
+├── prompts/
+│   └── translation_system.txt  # 번역 시스템 프롬프트 (한글)
 ├── src/
 │   ├── __init__.py
 │   ├── chunker.py      # 스마트 청킹 로직
@@ -204,6 +206,25 @@ luxia_translation/
 ⚠️  Warning: Missing placeholder {{CODE_BLOCK_0}}
 ```
 → 번역 중 일부 플레이스홀더가 손실되었습니다. 해당 청크는 원문으로 유지됩니다.
+
+## 프롬프트 관리
+
+번역 시스템 프롬프트는 `prompts/translation_system.txt` 파일에서 한글로 관리됩니다.
+
+**프롬프트 수정 방법:**
+1. `prompts/translation_system.txt` 파일을 텍스트 에디터로 열기
+2. 번역 지시사항 수정
+3. 저장 후 바로 적용 (재시작 불필요)
+
+**커스텀 프롬프트 사용:**
+```bash
+# config.yaml에 추가
+translation:
+  prompt_file: "prompts/custom_prompt.txt"
+
+# 또는 환경변수 설정
+export LLM_PROMPT_FILE=prompts/custom_prompt.txt
+```
 
 ## 추후 개선 사항
 

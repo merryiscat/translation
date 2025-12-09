@@ -148,12 +148,8 @@ def main():
         print(f"❌ Error: Input file not found: {args.input}")
         sys.exit(1)
 
-    # Check API key (from env or config)
+    # Check API key (from env or config) - optional for self-hosted models
     api_key = os.environ.get('LLM_API_KEY', config.get('api', {}).get('api_key', ''))
-    if not api_key:
-        print("❌ Error: API key not found")
-        print("   Set LLM_API_KEY in .env file or environment variable")
-        sys.exit(1)
 
     # Check endpoint
     endpoint = os.environ.get('LLM_API_ENDPOINT', config.get('api', {}).get('endpoint', ''))
